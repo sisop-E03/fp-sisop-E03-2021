@@ -9,11 +9,13 @@
 #include <sys/sendfile.h>
 #include <fcntl.h>
 
+#define PORT 8080
+#define OK "200"
+#define FAIL "100"
+
 #include "auth.h"
 #include "ddl.h"
 #include "dml.h"
-
-#define PORT 8080
 
 void clear_buffer(char* b) {
     for (int i = 0; i < BUFSIZ; i++)
@@ -41,16 +43,26 @@ int create_socket() {
     return socketfd;
 }
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char *argv[]) {
     int socketfd = create_socket();
 
     if (socketfd == -1)
         exit(0);
 
-    send(socketfd, "HALO", 4, 0);
-    char buffer[BUFSIZ];
-    read(socketfd, buffer, BUFSIZ);
-    printf("%s\n", buffer);
+    int res;
+    if (geteuid() != 0) {
+        res = login(socketfd, argv[2], argv[4]);
+    } 
+    else {
+        res = 1;
+    }
+
+    if (!res) {
+        printf("Credential not valid. Try again.\n");
+        exit(0);
+    }
+    
+    printf("Login berhasil\n");
 
     return 0;
 }
