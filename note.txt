@@ -1,0 +1,7 @@
+Client:
+- Every function has to start with send() and ends with read()
+
+Server:
+- Every function has to starts with read() and ends with send()
+
+Or no

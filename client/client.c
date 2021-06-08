@@ -55,7 +55,6 @@ int create_socket() {
 }
 
 int main(int argc, char *argv[]) {
-    printf("IN\n");
     int socketfd = create_socket();
 
     if (socketfd == -1)

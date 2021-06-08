@@ -13,15 +13,27 @@
 #include <wait.h>
 #include <time.h>
 
+#define PORT 8080
+#define OK "200"
+#define FAIL "100"
+
 #include "auth.h"
 #include "ddl.h"
 #include "dml.h"
 
-#define PORT 8080
-
 void clear_buffer(char* b) {
     for (int i = 0; i < BUFSIZ; i++)
         b[i] = '\0';
+}
+
+void handle_query(int socketfd) {
+    char buffer[BUFSIZ];
+    while (1)
+    {
+        read(socketfd, buffer, BUFSIZ);
+        printf("%s\n", buffer);
+        send(socketfd, OK, strlen(OK), 0);
+    } 
 }
 
 int launch_server() {
@@ -66,7 +78,13 @@ int main(int argc, char const *argv[]) {
     int socketfd = launch_server();
     char buffer[BUFSIZ];
     read(socketfd, buffer, BUFSIZ);
-    printf("%s\n", buffer);
-    send(socketfd, "HAI", 3, 0);
+    int res = login(socketfd, buffer);
+    if (res) 
+        send(socketfd, OK, strlen(OK), 0);
+    else 
+        send(socketfd, FAIL, strlen(FAIL), 0);
+
+    if (res)
+        handle_query(socketfd);
     return 0;
 }
