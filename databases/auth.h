@@ -2,7 +2,7 @@ int login(int socketfd, char *data) {
     if (!strcmp(data, "root"))
         return 1;
 
-    FILE *fp = fopen("databases/account.csv", "r");
+    FILE *fp = fopen("account.csv", "r");
     char line[100];
     int is_exist = 0;
 
