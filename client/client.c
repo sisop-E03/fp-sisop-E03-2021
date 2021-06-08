@@ -22,6 +22,17 @@ void clear_buffer(char* b) {
         b[i] = '\0';
 }
 
+void interface(int socketfd, int root) {
+    char buffer[BUFSIZ], query[BUFSIZ];
+    while(1) {
+        fgets(query, sizeof(query), stdin);
+        query[strcspn(query, "\n")] = 0;
+        send(socketfd, query, strlen(query), 0);
+        read(socketfd, buffer, BUFSIZ);
+        printf("%s\n", buffer);
+    }
+}
+
 int create_socket() {
     struct sockaddr_in address;
     int socketfd, valread;
@@ -44,17 +55,20 @@ int create_socket() {
 }
 
 int main(int argc, char *argv[]) {
+    printf("IN\n");
     int socketfd = create_socket();
 
     if (socketfd == -1)
         exit(0);
 
-    int res;
+    int res, root; // root is 1 if program run by root
     if (geteuid() != 0) {
-        res = login(socketfd, argv[2], argv[4]);
-    } 
+        root = 0;
+        res = login(socketfd, argv[2], argv[4], root);
+    }
     else {
-        res = 1;
+        root = 1;
+        res = login(socketfd, argv[2], argv[4], root);
     }
 
     if (!res) {
@@ -62,7 +76,9 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
     
-    printf("Login berhasil\n");
+    printf("Login berhasil\nYou can create query\n");
+
+    interface(socketfd, root);
 
     return 0;
 }

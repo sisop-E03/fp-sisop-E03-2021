@@ -1,7 +1,11 @@
-int login(int socketfd, char *username, char *password) {
+int login(int socketfd, char *username, char *password, int root) {
     char data[100], buffer[BUFSIZ];
     sprintf(data, "%s,%s", username, password);
-    send(socketfd, data, strlen(data), 0);
+    if (root)
+        send(socketfd, "root", 4, 0);
+    else 
+        send(socketfd, data, strlen(data), 0);
+
     read(socketfd, buffer, BUFSIZ);
     if (strcmp(buffer, OK))
         return 0;
