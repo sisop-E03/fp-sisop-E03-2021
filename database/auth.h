@@ -21,9 +21,10 @@ int login(int socketfd, char *data) {
 
 void saveUser(char username[], char password[]) {
     FILE *fpUser;
-    fpUser = fopen("akun.txt", "a+");
+    fpUser = fopen("account.csv", "a+");
 
     fprintf(fpUser, "%s,%s\n", username, password);
+    fclose(fpUser);
 
     printf("save user success\n");
 }

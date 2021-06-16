@@ -31,7 +31,7 @@ int dropTable(char tableName[]) {
     return res;
 }
 
-int ddlInterface(char* buffer, char *word) {
+int ddlInterface(char* query, char *word) {
     int res = 0;
     if (!strcmp(word, "CREATE")) {
         word = strtok(NULL, " ");
@@ -71,7 +71,7 @@ int ddlInterface(char* buffer, char *word) {
         }
         else if (!strcmp(word, "COLUMN")) {
             word = strtok(NULL, " ");
-            char columnName;
+            char columnName[20];
             strcpy(columnName, word);
             if (dropColumn(columnName)) {
                 res = 1;

@@ -1,4 +1,4 @@
-int authInterface(char* buffer, char* word) {
+int dmlInterface(char* query, char* word) {
     int res = 0;
     if (!strcmp(word, "INSERT")) {
         word = strtok(NULL, " ");

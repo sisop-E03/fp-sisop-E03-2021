@@ -33,23 +33,28 @@ void handleQuery(int socketfd) {
     char buffer[BUFSIZ];
     while (1)
     {
+        clearBuffer(buffer);
         read(socketfd, buffer, BUFSIZ);
         printf("%s\n", buffer);
+        char query[100];
+        strcpy(query, buffer);
 
         int res = 0;
-        
-        char *word;
-        word = strtok(buffer, " ");
 
-        if (buffer[strlen(buffer)-1] == ';'){
+        if (query[strlen(query)-1] == ';'){
             // remove semicolon in query
-            buffer[strlen(buffer)-1] = '\n';
+            query[strlen(query)-1] = '\n';
 
-            if (authInterface(buffer, word))
+            char *word;
+            word = strtok(query, " ");
+
+            printf(";\n");
+
+            if (authInterface(query, word))
                 res = 1;
-            else if (ddlInterface(buffer, word))
+            else if (ddlInterface(query, word))
                 res = 1;
-            else if (dmlInterface(buffer, word))
+            else if (dmlInterface(query, word))
                 res = 1;
         }
 
