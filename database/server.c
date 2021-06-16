@@ -18,23 +18,15 @@
 #define FAIL "100"
 
 char activeUser[20];
+char activeDB[20];
 
 #include "auth.h"
 #include "ddl.h"
 #include "dml.h"
 
-void clearBufffer(char* b) {
+void clearBuffer(char* b) {
     for (int i = 0; i < BUFSIZ; i++)
         b[i] = '\0';
-}
-
-void saveUser(char username[], char password[]) {
-    FILE *fp_user;
-    fp_user = fopen("akun.txt", "a+");
-
-    fprintf(fp_user, "%s,%s\n", username, password);
-
-    printf("save user success\n");
 }
 
 void handleQuery(int socketfd) {
@@ -49,24 +41,17 @@ void handleQuery(int socketfd) {
         char *word;
         word = strtok(buffer, " ");
 
-        if (!strcmp(word, "CREATE")) {
-            word = strtok(NULL, " ");
-            if (!strcmp(word, "USER")) {
-                word = strtok(NULL, " ");
-                char username[20], password[20];
-                strcpy(username, word);
-                word = strtok(NULL, " ");
-                if (!strcmp(word, "IDENTIFIED")) {
-                    word = strtok(NULL, " ");
-                    if (!strcmp(word, "BY")) {
-                        word = strtok(NULL, " ");
-                        strcpy(password, word);
-                        saveUser(username, password);
-                        res = 1;
-                    } 
-                }
-            }
-        } 
+        if (buffer[strlen(buffer)-1] == ';'){
+            // remove semicolon in query
+            buffer[strlen(buffer)-1] = '\n';
+
+            if (authInterface(buffer, word))
+                res = 1;
+            else if (ddlInterface(buffer, word))
+                res = 1;
+            else if (dmlInterface(buffer, word))
+                res = 1;
+        }
 
         if (res)
             send(socketfd, OK, strlen(OK), 0);
