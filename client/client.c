@@ -19,7 +19,7 @@
 
 char activeUser[20];
 
-void clear_buffer(char* b) {
+void clearBuffer(char* b) {
     for (int i = 0; i < BUFSIZ; i++)
         b[i] = '\0';
 }
@@ -38,7 +38,7 @@ void interface(int socketfd, int root) {
     }
 }
 
-int create_socket() {
+int createSocket() {
     struct sockaddr_in address;
     int socketfd, valread;
     struct sockaddr_in serv_addr;
@@ -60,7 +60,7 @@ int create_socket() {
 }
 
 int main(int argc, char *argv[]) {
-    int socketfd = create_socket();
+    int socketfd = createSocket();
 
     if (socketfd == -1)
         exit(0);

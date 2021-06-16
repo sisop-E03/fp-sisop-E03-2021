@@ -17,18 +17,18 @@
 #define OK "200"
 #define FAIL "100"
 
-char active_user[20];
+char activeUser[20];
 
 #include "auth.h"
 #include "ddl.h"
 #include "dml.h"
 
-void clear_buffer(char* b) {
+void clearBufffer(char* b) {
     for (int i = 0; i < BUFSIZ; i++)
         b[i] = '\0';
 }
 
-void save_user(char username[], char password[]) {
+void saveUser(char username[], char password[]) {
     FILE *fp_user;
     fp_user = fopen("akun.txt", "a+");
 
@@ -37,7 +37,7 @@ void save_user(char username[], char password[]) {
     printf("save user success\n");
 }
 
-void handle_query(int socketfd) {
+void handleQuery(int socketfd) {
     char buffer[BUFSIZ];
     while (1)
     {
@@ -61,7 +61,7 @@ void handle_query(int socketfd) {
                     if (!strcmp(word, "BY")) {
                         word = strtok(NULL, " ");
                         strcpy(password, word);
-                        save_user(username, password);
+                        saveUser(username, password);
                         res = 1;
                     } 
                 }
@@ -75,7 +75,7 @@ void handle_query(int socketfd) {
     } 
 }
 
-int launch_server() {
+int launchServer() {
     int server_fd, socketfd, valread;
     struct sockaddr_in address;
     int opt = 1;
@@ -114,7 +114,7 @@ int launch_server() {
 }
 
 int main(int argc, char const *argv[]) {
-    int socketfd = launch_server();
+    int socketfd = launchServer();
     char buffer[BUFSIZ];
     read(socketfd, buffer, BUFSIZ);
     int res = login(socketfd, buffer);
@@ -124,6 +124,6 @@ int main(int argc, char const *argv[]) {
         send(socketfd, FAIL, strlen(FAIL), 0);
 
     if (res)
-        handle_query(socketfd);
+        handleQuery(socketfd);
     return 0;
 }
