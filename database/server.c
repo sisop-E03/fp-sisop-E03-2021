@@ -41,7 +41,7 @@ void handleQuery(int socketfd) {
 
         if (buffer[strlen(buffer)-1] == ';'){
             // remove semicolon in buffer
-            buffer[strlen(buffer)-1] = '\n';
+            buffer[strlen(buffer)-1] = '\0';
 
             if (authInterface(buffer))
                 res = 1;
@@ -93,10 +93,10 @@ int launchServer() {
         mkdir("databases/credentials", 0700);
     }
     FILE* fpUser = fopen("databases/credentials/users.csv", "a+");
-    fprintf(fpUser, "username,password\n");
+    // fprintf(fpUser, "username,password\n");
     fclose(fpUser);
     FILE* fpAccess = fopen("databases/credentials/access.csv", "a+");
-    fprintf(fpAccess, "dbname,username");
+    // fprintf(fpAccess, "dbname,username\n");
     fclose(fpAccess);
 
     if ((socketfd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)

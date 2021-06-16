@@ -11,7 +11,7 @@ int login(int socketfd, char *data) {
     while (fscanf(fp, "%s", line) != EOF) {
         if (strcmp(data, line) == 0) {
             char *username;
-            username = strtok(data, " ");
+            username = strtok(data, ",");
             strcpy(activeUser, data);
             is_exist = 1;
             break;
@@ -62,7 +62,6 @@ int authInterface(char* buffer) {
                 if (!strcmp(word, "BY")) {
                     word = strtok(NULL, " ");
                     strcpy(password, word);
-                    password[strcspn(password, "\n")] = 0;
                     saveUser(username, password);
                     res = 1;
                 } 
@@ -73,6 +72,7 @@ int authInterface(char* buffer) {
         word = strtok(NULL, " ");
         strcpy(activeDB, word);
         printf("Change active DB to %s\n", activeDB);
+        res = 1;
     }
     else if (!strcmp(word, "GRANT")) {
         word = strtok(NULL, " ");

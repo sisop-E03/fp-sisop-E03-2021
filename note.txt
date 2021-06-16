@@ -1,5 +1,13 @@
-Client:
-- Every function has to start with send() and ends with read() OR not have both
+Tiap fungsi untuk berkomunikasi server dan client harus:
+    Client:
+    - dimulai send() dan diakhiri dengan read()
 
-Server:
-- Every function has to starts with read() and ends with send() OR not have both
+    Server:
+    - dimulai dengan read() dan diakhiri dengan send()
+
+Implementasi function akan mengembalikan res 
+    res bernilai > 0 jika operasi sukses
+    res bernilai 0 jika operasi gagal
+
+Kesalahan yang sering dilakukan:
+- Tidak memanggil fclose() setelah fopen()
