@@ -8,6 +8,7 @@ int login(int socketfd, char *data) {
 
     while (fscanf(fp, "%s", line) != EOF) {
         if (strcmp(data, line) == 0) {
+            strcpy(active_user, data);
             is_exist = 1;
             break;
         }

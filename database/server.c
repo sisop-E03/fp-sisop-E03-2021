@@ -17,6 +17,8 @@
 #define OK "200"
 #define FAIL "100"
 
+char active_user[20];
+
 #include "auth.h"
 #include "ddl.h"
 #include "dml.h"
@@ -26,13 +28,50 @@ void clear_buffer(char* b) {
         b[i] = '\0';
 }
 
+void save_user(char username[], char password[]) {
+    FILE *fp_user;
+    fp_user = fopen("akun.txt", "a+");
+
+    fprintf(fp_user, "%s,%s\n", username, password);
+
+    printf("save user success\n");
+}
+
 void handle_query(int socketfd) {
     char buffer[BUFSIZ];
     while (1)
     {
         read(socketfd, buffer, BUFSIZ);
         printf("%s\n", buffer);
-        send(socketfd, OK, strlen(OK), 0);
+
+        int res = 0;
+        
+        char *word;
+        word = strtok(buffer, " ");
+
+        if (!strcmp(word, "CREATE")) {
+            word = strtok(NULL, " ");
+            if (!strcmp(word, "USER")) {
+                word = strtok(NULL, " ");
+                char username[20], password[20];
+                strcpy(username, word);
+                word = strtok(NULL, " ");
+                if (!strcmp(word, "IDENTIFIED")) {
+                    word = strtok(NULL, " ");
+                    if (!strcmp(word, "BY")) {
+                        word = strtok(NULL, " ");
+                        strcpy(password, word);
+                        save_user(username, password);
+                        res = 1;
+                    } 
+                }
+            }
+        } 
+
+        if (res)
+            send(socketfd, OK, strlen(OK), 0);
+        else 
+            send(socketfd, FAIL, strlen(FAIL), 0);
     } 
 }
 
