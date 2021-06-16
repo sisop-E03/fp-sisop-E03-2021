@@ -35,12 +35,10 @@ void saveUser(char username[], char password[]) {
 
 void giveAccess(char dbname[], char username[]) {
     FILE *fpAccess;
-    fpAccess = fopen("databases/credentials/users.csv", "a+");
+    fpAccess = fopen("databases/credentials/access.csv", "a+");
 
     fprintf(fpAccess, "%s,%s\n", dbname, username);
     fclose(fpAccess);
-
-    printf("give access user success");
 }
 
 int authInterface(char* buffer) {
@@ -50,7 +48,7 @@ int authInterface(char* buffer) {
     word = strtok(query, " ");
 
     int res = 0;
-    if (!strcmp(word, "CREATE")) {
+    if (!strcmp(word, "CREATE") && !strcmp(activeUser, "root")) {
         word = strtok(NULL, " ");
         if (!strcmp(word, "USER")) {
             word = strtok(NULL, " ");
@@ -70,16 +68,23 @@ int authInterface(char* buffer) {
     } 
     else if (!strcmp(word, "USE")) {
         word = strtok(NULL, " ");
-        strcpy(activeDB, word);
-        printf("Change active DB to %s\n", activeDB);
-        res = 1;
+        if (doHaveAccess(word)){
+            strcpy(activeDB, word);
+            printf("Change active DB to %s\n", activeDB);
+            res = 1;
+        }
+        else {
+            printf("You dont have access\n");
+        }
     }
-    else if (!strcmp(word, "GRANT")) {
+    else if (!strcmp(word, "GRANT") && !strcmp(activeUser, "root")) {
         word = strtok(NULL, " ");
         if (!strcmp(word, "PERMISSION")) {
             word = strtok(NULL, " ");
             char dbname[20], username[20];
             strcpy(dbname, word);
+            printf("%s\n", dbname);
+            word = strtok(NULL, " ");
             if (!strcmp(word, "INTO")) {
                 word = strtok(NULL, " ");
                 strcpy(username, word);

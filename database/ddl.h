@@ -97,10 +97,6 @@ int dropColumn(char tableName[], char columnName[]) {
     return res;
 }
 
-int doHaveAccess(char dbname) {
-    // not implemented
-}
-
 int ddlInterface(char* buffer) {
     char query[100];
     char *word;
@@ -164,12 +160,18 @@ int ddlInterface(char* buffer) {
             word = strtok(NULL, " ");
             char dbname[20];
             strcpy(dbname, word);
-            if (dropDB(dbname)) {
-                res = 1;
-                strcpy(activeDB, "");
+            if (doHaveAccess(word)){
+                if (dropDB(dbname)) {
+                    res = 1;
+                    strcpy(activeDB, "");
+                }
             }
+            else {
+                printf("You dont have access\n");
+            }
+            
         }
-        else if (!strcmp(word, "TABLE")) {
+        else if (!strcmp(word, "TABLE") && strlen(activeDB) > 0) {
             word = strtok(NULL, " ");
             char tableName[20];
             strcpy(tableName, word);
@@ -177,7 +179,7 @@ int ddlInterface(char* buffer) {
                 res = 1;
             }
         }
-        else if (!strcmp(word, "COLUMN")) {
+        else if (!strcmp(word, "COLUMN") && strlen(activeDB) > 0) {
             word = strtok(NULL, " ");
             char columnName[20];
             strcpy(columnName, word);

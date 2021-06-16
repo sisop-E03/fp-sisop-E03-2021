@@ -17,8 +17,24 @@
 #define OK "200"
 #define FAIL "100"
 
-char activeUser[20];
-char activeDB[20];
+char activeUser[20] = "";
+char activeDB[20] = "";
+
+int doHaveAccess(char dbname[]) {
+    FILE *fp = fopen("databases/credentials/access.csv", "r");
+    char line[100];
+    int haveAccess = 0;
+    char data[100];
+    sprintf(data, "%s,%s", dbname, activeUser);
+
+    while (fscanf(fp, "%s", line) != EOF) {
+        if (!strcmp(data, line)) {
+            haveAccess = 1;
+            break;
+        }
+    }
+    return haveAccess;
+}
 
 #include "auth.h"
 #include "ddl.h"
