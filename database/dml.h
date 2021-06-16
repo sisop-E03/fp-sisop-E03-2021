@@ -1,4 +1,9 @@
-int dmlInterface(char* query, char* word) {
+int dmlInterface(char* buffer) {
+    char query[100];
+    char *word;
+    strcpy(query, buffer);
+    word = strtok(query, " ");
+    
     int res = 0;
     if (!strcmp(word, "INSERT")) {
         word = strtok(NULL, " ");

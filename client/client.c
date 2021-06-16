@@ -13,11 +13,21 @@
 #define OK "200"
 #define FAIL "100"
 
-#include "auth.h"
-#include "ddl.h"
-#include "dml.h"
-
 char activeUser[20];
+
+int login(int socketfd, char *username, char *password, int root) {
+    char data[100], buffer[BUFSIZ];
+    sprintf(data, "%s,%s", username, password);
+    if (root)
+        send(socketfd, "root", 4, 0);
+    else 
+        send(socketfd, data, strlen(data), 0);
+
+    read(socketfd, buffer, BUFSIZ);
+    if (strcmp(buffer, OK))
+        return 0;
+    return 1;
+}
 
 void clearBuffer(char* b) {
     for (int i = 0; i < BUFSIZ; i++)

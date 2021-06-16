@@ -36,25 +36,18 @@ void handleQuery(int socketfd) {
         clearBuffer(buffer);
         read(socketfd, buffer, BUFSIZ);
         printf("%s\n", buffer);
-        char query[100];
-        strcpy(query, buffer);
 
         int res = 0;
 
-        if (query[strlen(query)-1] == ';'){
-            // remove semicolon in query
-            query[strlen(query)-1] = '\n';
+        if (buffer[strlen(buffer)-1] == ';'){
+            // remove semicolon in buffer
+            buffer[strlen(buffer)-1] = '\n';
 
-            char *word;
-            word = strtok(query, " ");
-
-            printf(";\n");
-
-            if (authInterface(query, word))
+            if (authInterface(buffer))
                 res = 1;
-            else if (ddlInterface(query, word))
+            else if (ddlInterface(buffer))
                 res = 1;
-            else if (dmlInterface(query, word))
+            else if (dmlInterface(buffer))
                 res = 1;
         }
 
@@ -93,9 +86,18 @@ int launchServer() {
 
     struct stat st = {0};
 
-    if (stat("database", &st) == -1) {
-        mkdir("database", 0700);
+    if (stat("databases", &st) == -1) {
+        mkdir("databases", 0700);
     }
+    if (stat("databases/credentials", &st) == -1) {
+        mkdir("databases/credentials", 0700);
+    }
+    FILE* fpUser = fopen("databases/credentials/users.csv", "a+");
+    fprintf(fpUser, "username,password\n");
+    fclose(fpUser);
+    FILE* fpAccess = fopen("databases/credentials/access.csv", "a+");
+    fprintf(fpAccess, "dbname,username");
+    fclose(fpAccess);
 
     if ((socketfd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
         exit(0);

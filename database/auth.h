@@ -1,13 +1,17 @@
 int login(int socketfd, char *data) {
-    if (!strcmp(data, "root"))
+    if (!strcmp(data, "root")){
+        strcpy(activeUser, data);
         return 1;
+    }
 
-    FILE *fp = fopen("account.csv", "r");
+    FILE *fp = fopen("databases/credentials/users.csv", "r");
     char line[100];
     int is_exist = 0;
 
     while (fscanf(fp, "%s", line) != EOF) {
         if (strcmp(data, line) == 0) {
+            char *username;
+            username = strtok(data, " ");
             strcpy(activeUser, data);
             is_exist = 1;
             break;
@@ -21,7 +25,7 @@ int login(int socketfd, char *data) {
 
 void saveUser(char username[], char password[]) {
     FILE *fpUser;
-    fpUser = fopen("account.csv", "a+");
+    fpUser = fopen("databases/credentials/users.csv", "a+");
 
     fprintf(fpUser, "%s,%s\n", username, password);
     fclose(fpUser);
@@ -29,11 +33,22 @@ void saveUser(char username[], char password[]) {
     printf("save user success\n");
 }
 
-void giveAccess(char username[], char dbname[]) {
-    // Not implemented
+void giveAccess(char dbname[], char username[]) {
+    FILE *fpAccess;
+    fpAccess = fopen("databases/credentials/users.csv", "a+");
+
+    fprintf(fpAccess, "%s,%s\n", dbname, username);
+    fclose(fpAccess);
+
+    printf("give access user success");
 }
 
-int authInterface(char* buffer, char* word) {
+int authInterface(char* buffer) {
+    char query[100];
+    char *word;
+    strcpy(query, buffer);
+    word = strtok(query, " ");
+
     int res = 0;
     if (!strcmp(word, "CREATE")) {
         word = strtok(NULL, " ");
@@ -47,6 +62,7 @@ int authInterface(char* buffer, char* word) {
                 if (!strcmp(word, "BY")) {
                     word = strtok(NULL, " ");
                     strcpy(password, word);
+                    password[strcspn(password, "\n")] = 0;
                     saveUser(username, password);
                     res = 1;
                 } 
@@ -56,6 +72,7 @@ int authInterface(char* buffer, char* word) {
     else if (!strcmp(word, "USE")) {
         word = strtok(NULL, " ");
         strcpy(activeDB, word);
+        printf("Change active DB to %s\n", activeDB);
     }
     else if (!strcmp(word, "GRANT")) {
         word = strtok(NULL, " ");
@@ -66,7 +83,7 @@ int authInterface(char* buffer, char* word) {
             if (!strcmp(word, "INTO")) {
                 word = strtok(NULL, " ");
                 strcpy(username, word);
-                giveAccess(username, dbname);
+                giveAccess(dbname, username);
                 res = 1;
             }
         }
