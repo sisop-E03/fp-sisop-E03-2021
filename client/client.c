@@ -17,6 +17,8 @@
 #include "ddl.h"
 #include "dml.h"
 
+char activeUser[20];
+
 void clear_buffer(char* b) {
     for (int i = 0; i < BUFSIZ; i++)
         b[i] = '\0';
@@ -29,7 +31,10 @@ void interface(int socketfd, int root) {
         query[strcspn(query, "\n")] = 0;
         send(socketfd, query, strlen(query), 0);
         read(socketfd, buffer, BUFSIZ);
-        printf("%s\n", buffer);
+        if (!strcmp(buffer, OK))
+            printf("query berhasil\n");
+        else 
+            printf("query gagal tidak valid\n");
     }
 }
 
