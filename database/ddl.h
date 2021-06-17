@@ -28,6 +28,8 @@ int createTable(char tableName[], char colName[][20], char colType[][20], int co
         fprintf(fpTable, ",%s", colType[i]);
     }
     fprintf(fpTable, "\n");
+
+    sprintf(path, "databases/%s/info.csv", activeDB);
     FILE *fpInfo = fopen(path, "a+");
     fprintf(fpInfo, "%s\n", tableName);
     fclose(fpInfo);
