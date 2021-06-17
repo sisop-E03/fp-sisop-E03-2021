@@ -1,0 +1,27 @@
+DROP TABLE table1;
+CREATE TABLE table1 (col1 string, col2 int, col3 string, col4 string);
+
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (data1, data2, data3, data4);
+INSERT INTO table1 (hai, helo, hai, helo);

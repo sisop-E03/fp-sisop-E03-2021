@@ -130,39 +130,6 @@ int ddlInterface(char* buffer) {
             }
             if (createTable(tableName, colName, colType, colCounter))
                 res = 1;
-            // int offset = strlen("CREATE TABLE ") + strlen(tableName) + 1;
-            // char* colQuery;
-            // colQuery = query+offset; // get query after table name, inside "()"
-            // if (colQuery[0] == '(' && colQuery[strlen(colQuery)-1] == ')') {
-            //     colQuery++; // remove first character '('
-            //     colQuery[strlen(colQuery)-1] = '\0'; // remove last character ')'
-
-            //     char colName[20][20], colType[20][20]; // to store column name and type
-            //     int colCounter = 0, queryIndex = 0, wordIndex;
-            //     // loop every column name and column type
-            //     while (colQuery[queryIndex] != '\0') {
-            //         wordIndex=0;
-            //         // get column name
-            //         while(colQuery[queryIndex] != ' ' && colQuery[queryIndex] != '\0') {
-            //             colName[colCounter][wordIndex] = colQuery[queryIndex];
-            //             queryIndex++, wordIndex++;
-            //         }
-            //         colName[colCounter][wordIndex] = '\0';
-            //         queryIndex++, wordIndex=0;
-            //         // get column type
-            //         while(colQuery[queryIndex] != ',' && colQuery[queryIndex] != '\0') {
-            //             colType[colCounter][wordIndex] = colQuery[queryIndex];
-            //             queryIndex++, wordIndex++;
-            //         }
-            //         colType[colCounter][wordIndex] = '\0';
-            //         queryIndex++;
-            //         if (colQuery[queryIndex] == ' ')
-            //             queryIndex++;
-            //         colCounter++;
-            //     }
-            //     if (createTable(tableName, colName, colType, colCounter))
-            //         res = 1;
-            // }
         }
     } 
     else if (!strcmp(splitted[0], "DROP")) {

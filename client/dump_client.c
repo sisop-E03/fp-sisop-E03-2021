@@ -77,12 +77,36 @@ int main(int argc, char *argv[]) {
     char query[100], buffer[BUFSIZ];
     sprintf(query, "DUMP %s;", argv[5]); // argv[5] = dbname
     
+    int isSave = 0;
+    char backupPath[100];
+    char argv6[20];
+    sprintf(argv6, "%s", argv[6]);
+    if (!strcmp(argv6, ">")) {
+        isSave = 1;
+        strcpy(backupPath, argv[7]);
+    }
+    
     send(socketfd, query, strlen(query), 0);
+    clearBuffer(buffer);
     read(socketfd, buffer, BUFSIZ);
-    if (!strcmp(buffer, OK))
-        printf("query berhasil\n");
-    else 
-        printf("query gagal tidak valid\n");
+
+    if (!isSave) {
+        while (!strstr(buffer, "STOP")) {
+            printf("%s\n", buffer);
+            clearBuffer(buffer);
+            read(socketfd, buffer, BUFSIZ);
+        }
+    }
+    else {
+        FILE *fpBackup = fopen(backupPath, "a+");
+        while (!strstr(buffer, "STOP")) {
+            printf("%s\n", buffer);
+            fprintf(fpBackup, "%s\n", buffer);
+            clearBuffer(buffer);
+            read(socketfd, buffer, BUFSIZ);
+        }
+        fclose(fpBackup);
+    }
 
     return 0;
 }

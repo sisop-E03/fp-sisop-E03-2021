@@ -67,7 +67,7 @@ int dumpDB(char dbname[]) {
         char tablePath[100], dumpPath[100];
         tableName[strcspn(tableName, "\n")] = 0;
         sprintf(tablePath, "databases/%s/%s.csv", dbname, tableName);
-        sprintf(dumpPath, "databases/%s/dump.csv", dbname);
+        sprintf(dumpPath, "databases/dump.csv");
 
         FILE *fpTable = fopen(tablePath, "r");
         FILE *fpDump = fopen(dumpPath, "w");
@@ -129,20 +129,21 @@ int dumpInterface(char* buffer) {
 
 void handleQuery(int socketfd) {
     char buffer[BUFSIZ];
+    int isDump = 0;
     while (1)
     {
         clearBuffer(buffer);
         read(socketfd, buffer, BUFSIZ);
         printf("%s\n", buffer);
+            
+        if (dumpInterface(buffer))
+            isDump = 1;
 
         int res = 0;
 
         if (buffer[strlen(buffer)-1] == ';'){
             // remove semicolon in buffer
             buffer[strlen(buffer)-1] = '\0';
-            
-            if (dumpInterface(buffer))
-                res = 1;
             if (authInterface(buffer))
                 res = 1;
             else if (ddlInterface(buffer))
@@ -151,7 +152,17 @@ void handleQuery(int socketfd) {
                 res = 1;
         }
 
-        if (res)
+        if (isDump){
+            FILE *fpDump = fopen("databases/dump.csv", "r");
+            char line[BUFSIZ];
+            while (fgets(line, sizeof(line), fpDump) != NULL) {
+                printf("%s\n", line);
+                send(socketfd, line, strlen(line), 0);
+            }
+            send(socketfd, "STOP", strlen("STOP"), 0);
+            fclose(fpDump);
+        }
+        else if (res)
             send(socketfd, OK, strlen(OK), 0);
         else 
             send(socketfd, FAIL, strlen(FAIL), 0);
