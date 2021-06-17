@@ -10,9 +10,9 @@ int login(int socketfd, char *data) {
 
     while (fscanf(fp, "%s", line) != EOF) {
         if (strcmp(data, line) == 0) {
-            char *username;
-            username = strtok(data, ",");
-            strcpy(activeUser, data);
+            char splitted[100][100];
+            int amount = splitString(splitted, data);
+            strcpy(activeUser, splitted[0]);
             is_exist = 1;
             break;
         }
@@ -45,31 +45,26 @@ int authInterface(char* buffer) {
     char query[100];
     char *word;
     strcpy(query, buffer);
-    word = strtok(query, " ");
+    char splitted[100][100];
+    int amount = splitString(splitted, query);
 
     int res = 0;
-    if (!strcmp(word, "CREATE") && !strcmp(activeUser, "root")) {
-        word = strtok(NULL, " ");
-        if (!strcmp(word, "USER")) {
-            word = strtok(NULL, " ");
+    if (!strcmp(splitted[0], "CREATE") && !strcmp(activeUser, "root")) {
+        if (!strcmp(splitted[1], "USER")) {
             char username[20], password[20];
-            strcpy(username, word);
-            word = strtok(NULL, " ");
-            if (!strcmp(word, "IDENTIFIED")) {
-                word = strtok(NULL, " ");
-                if (!strcmp(word, "BY")) {
-                    word = strtok(NULL, " ");
-                    strcpy(password, word);
+            strcpy(username, splitted[2]);
+            if (!strcmp(splitted[3], "IDENTIFIED")) {
+                if (!strcmp(splitted[4], "BY")) {
+                    strcpy(password, splitted[5]);
                     saveUser(username, password);
                     res = 1;
                 } 
             }
         }
     } 
-    else if (!strcmp(word, "USE")) {
-        word = strtok(NULL, " ");
-        if (doHaveAccess(word)){
-            strcpy(activeDB, word);
+    else if (!strcmp(splitted[0], "USE")) {
+        if (doHaveAccess(splitted[1])){
+            strcpy(activeDB, splitted[1]);
             printf("Change active DB to %s\n", activeDB);
             res = 1;
         }
@@ -77,17 +72,12 @@ int authInterface(char* buffer) {
             printf("You dont have access\n");
         }
     }
-    else if (!strcmp(word, "GRANT") && !strcmp(activeUser, "root")) {
-        word = strtok(NULL, " ");
-        if (!strcmp(word, "PERMISSION")) {
-            word = strtok(NULL, " ");
+    else if (!strcmp(splitted[0], "GRANT") && !strcmp(activeUser, "root")) {
+        if (!strcmp(splitted[1], "PERMISSION")) {
             char dbname[20], username[20];
-            strcpy(dbname, word);
-            printf("%s\n", dbname);
-            word = strtok(NULL, " ");
-            if (!strcmp(word, "INTO")) {
-                word = strtok(NULL, " ");
-                strcpy(username, word);
+            strcpy(dbname, splitted[2]);
+            if (!strcmp(splitted[3], "INTO")) {
+                strcpy(username, splitted[4]);
                 giveAccess(dbname, username);
                 res = 1;
             }

@@ -23,7 +23,14 @@ int createTable(char tableName[], char colName[][20], char colType[][20], int co
     for (int i=1; i<colAmount; i++) {
         fprintf(fpTable, ",%s",colName[i]);
     }
+    fprintf(fpTable, "\n%s", colType[0]);
+    for (int i=1; i<colAmount; i++) {
+        fprintf(fpTable, ",%s", colType[i]);
+    }
     fprintf(fpTable, "\n");
+    FILE *fpInfo = fopen(path, "a+");
+    fprintf(fpInfo, "%s\n", tableName);
+    fclose(fpInfo);
     fclose(fpTable);
     return 1;
 }
@@ -55,42 +62,40 @@ int dropColumn(char tableName[], char columnName[]) {
     char headTable[100];
     fscanf(fpTable, "%s", headTable);
     fclose(fpTable);
-    char *col;
     int counter = 0;
-    col = strtok(headTable, ",");
-    // find requested column name
-    while(col != NULL) {
-        if (!strcmp(columnName,col)) {
+
+    char columnNames[100][100];
+    int colAmount = splitString(columnNames, headTable);
+    while(counter < colAmount) {
+        if (!strcmp(columnNames[counter], columnName)) {
             res = 1;
             break;
         }
-        col = strtok(NULL, ",");
         counter++;
     }
     // if column name exist, then delete all coresponding value in that column
     if (res) {
         char *tempFileName = "temp.csv";
-        FILE *fp = fopen(path, "r");
-        FILE *fp_temp = fopen(tempFileName, "w"); 
+        FILE *fpTable = fopen(path, "r");
+        FILE *fpTemp = fopen(tempFileName, "w"); 
 
         char line[100];
 
-        while (fgets(line, sizeof(line), fp) != NULL) {
-            char *chunk;
+        while (fgets(line, sizeof(line), fpTable) != NULL) {
+            char columnDatas[100][100];
+            colAmount = splitString(columnDatas, line);
             int chunkCounter = 0;
-            chunk = strtok(line, ",");
-            while(chunk != NULL) {
+            while (counter < colAmount) {
                 if (chunkCounter != counter) {
                     if (chunkCounter > 0 && !(counter == 0 && chunkCounter == 1))
-                        fprintf(fp_temp, ",");
-                    fprintf(fp_temp, "%s", chunk);
+                        fprintf(fpTemp, ",");
+                    fprintf(fpTemp, "%s", columnDatas[chunkCounter]);
                 }
-                chunk = strtok(NULL, ",");
                 chunkCounter++;
             }
         }
-        fclose(fp);
-        fclose(fp_temp);
+        fclose(fpTable);
+        fclose(fpTemp);
         remove(path);
         rename(tempFileName, path);
     }
@@ -99,68 +104,72 @@ int dropColumn(char tableName[], char columnName[]) {
 
 int ddlInterface(char* buffer) {
     char query[100];
-    char *word;
     strcpy(query, buffer);
-    word = strtok(query, " ");
+    char splitted[100][100];
+    int amount = splitString(splitted, query);
 
     int res = 0;
-    if (!strcmp(word, "CREATE")) {
-        word = strtok(NULL, " ");
-        if (!strcmp(word, "DATABASE")) {
-            word = strtok(NULL, " ");
+    if (!strcmp(splitted[0], "CREATE")) {
+        if (!strcmp(splitted[1], "DATABASE")) {
             char dbname[20];
-            strcpy(dbname, word);
+            strcpy(dbname, splitted[2]);
             if (createDB(dbname)){
                 res = 1;
                 strcpy(activeDB, dbname);
             }
         }
-        else if (!strcmp(word, "TABLE")) {
-            word = strtok(NULL, " ");
+        else if (!strcmp(splitted[1], "TABLE")) {
             char tableName[20];
-            strcpy(tableName, word);
-            int offset = strlen("CREATE TABLE ") + strlen(tableName) + 1;
-            char* colQuery;
-            colQuery = query+offset; // get query after table name, inside "()"
-            if (colQuery[0] == '(' && colQuery[strlen(colQuery)-1] == ')') {
-                colQuery++; // remove first character '('
-                colQuery[strlen(colQuery)-1] = '\0'; // remove last character ')'
-
-                char colName[20][20], colType[20][20]; // to store column name and type
-                int colCounter = 0, queryIndex = 0, wordIndex;
-                // loop every column name and column type
-                while (colQuery[queryIndex] != '\0') {
-                    wordIndex=0;
-                    // get column name
-                    while(colQuery[queryIndex] != ' ' && colQuery[queryIndex] != '\0') {
-                        colName[colCounter][wordIndex] = colQuery[queryIndex];
-                        queryIndex++, wordIndex++;
-                    }
-                    colName[colCounter][wordIndex] = '\0';
-                    queryIndex++, wordIndex=0;
-                    // get column type
-                    while(colQuery[queryIndex] != ',' && colQuery[queryIndex] != '\0') {
-                        colType[colCounter][wordIndex] = colQuery[queryIndex];
-                        queryIndex++, wordIndex++;
-                    }
-                    colType[colCounter][wordIndex] = '\0';
-                    queryIndex++;
-                    if (colQuery[queryIndex] == ' ')
-                        queryIndex++;
-                    colCounter++;
-                }
-                if (createTable(tableName, colName, colType, colCounter))
-                    res = 1;
+            strcpy(tableName, splitted[2]);
+            int splitCounter = 3, colCounter=0;
+            char colName[20][20], colType[20][20];
+            while (splitCounter < amount) {
+                strcpy(colName[colCounter], splitted[splitCounter++]);
+                strcpy(colType[colCounter], splitted[splitCounter++]);
+                colCounter++;
             }
+            if (createTable(tableName, colName, colType, colCounter))
+                res = 1;
+            // int offset = strlen("CREATE TABLE ") + strlen(tableName) + 1;
+            // char* colQuery;
+            // colQuery = query+offset; // get query after table name, inside "()"
+            // if (colQuery[0] == '(' && colQuery[strlen(colQuery)-1] == ')') {
+            //     colQuery++; // remove first character '('
+            //     colQuery[strlen(colQuery)-1] = '\0'; // remove last character ')'
+
+            //     char colName[20][20], colType[20][20]; // to store column name and type
+            //     int colCounter = 0, queryIndex = 0, wordIndex;
+            //     // loop every column name and column type
+            //     while (colQuery[queryIndex] != '\0') {
+            //         wordIndex=0;
+            //         // get column name
+            //         while(colQuery[queryIndex] != ' ' && colQuery[queryIndex] != '\0') {
+            //             colName[colCounter][wordIndex] = colQuery[queryIndex];
+            //             queryIndex++, wordIndex++;
+            //         }
+            //         colName[colCounter][wordIndex] = '\0';
+            //         queryIndex++, wordIndex=0;
+            //         // get column type
+            //         while(colQuery[queryIndex] != ',' && colQuery[queryIndex] != '\0') {
+            //             colType[colCounter][wordIndex] = colQuery[queryIndex];
+            //             queryIndex++, wordIndex++;
+            //         }
+            //         colType[colCounter][wordIndex] = '\0';
+            //         queryIndex++;
+            //         if (colQuery[queryIndex] == ' ')
+            //             queryIndex++;
+            //         colCounter++;
+            //     }
+            //     if (createTable(tableName, colName, colType, colCounter))
+            //         res = 1;
+            // }
         }
     } 
-    else if (!strcmp(word, "DROP")) {
-        word = strtok(NULL, " ");
-        if (!strcmp(word, "DATABASE")) {
-            word = strtok(NULL, " ");
+    else if (!strcmp(splitted[0], "DROP")) {
+        if (!strcmp(splitted[1], "DATABASE")) {
             char dbname[20];
-            strcpy(dbname, word);
-            if (doHaveAccess(word)){
+            strcpy(dbname, splitted[2]);
+            if (doHaveAccess(dbname)){
                 if (dropDB(dbname)) {
                     res = 1;
                     strcpy(activeDB, "");
@@ -171,23 +180,19 @@ int ddlInterface(char* buffer) {
             }
             
         }
-        else if (!strcmp(word, "TABLE") && strlen(activeDB) > 0) {
-            word = strtok(NULL, " ");
+        else if (!strcmp(splitted[1], "TABLE") && strlen(activeDB) > 0) {
             char tableName[20];
-            strcpy(tableName, word);
+            strcpy(tableName, splitted[2]);
             if (dropTable(tableName)) {
                 res = 1;
             }
         }
-        else if (!strcmp(word, "COLUMN") && strlen(activeDB) > 0) {
-            word = strtok(NULL, " ");
+        else if (!strcmp(splitted[1], "COLUMN") && strlen(activeDB) > 0) {
             char columnName[20];
-            strcpy(columnName, word);
-            word = strtok(NULL, " ");
-            if (!strcmp(word, "FROM")) {
-                word = strtok(NULL, " ");
+            strcpy(columnName, splitted[2]);
+            if (!strcmp(splitted[3], "FROM")) {
                 char tableName[20];
-                strcpy(tableName, word);
+                strcpy(tableName, splitted[4]);
                 if (dropColumn(tableName, columnName)) {
                     res = 1;
                 }
