@@ -15,7 +15,8 @@ int insertData(char tableName[], char data[][20], int colAmount)
     return 1;
 }
 
-int updateData(char tableName[], char column[], char newValue[], char condValue[])
+int updateData(char tableName[], char column[], char newValue[],
+               char condColumn[], char condValue[])
 {
     int res = 0;
     int whereCond = 0;
@@ -25,25 +26,32 @@ int updateData(char tableName[], char column[], char newValue[], char condValue[
     FILE *fpTable = fopen(path, "r");
 
     char headTable[100];
-    fscanf(fpTable, "%s", headTable);
+    fgets(headTable, sizeof(headTable), fpTable);
 
     char columnNames[100][100];
     char tempHeadTable[100];
 
     strcpy(tempHeadTable, headTable);
-    int colAmount = splitString(columnNames, headTable);
+    int colAmount = splitString(columnNames, tempHeadTable);
 
     if (strcmp(condValue, ""))
         whereCond = 1;
 
     int counter = 0;
+    int colIndex=-1;
+    int condColIndex = -1;
     while (counter < colAmount)
     {
-        if (!strcmp(columnNames[counter], column))
-        {
+        if (!strcmp(columnNames[counter], column)) {
             res = 1;
-            break;
+            colIndex = counter;
         }
+
+        if (!strcmp(columnNames[counter], condColumn))
+            condColIndex = counter;
+
+        if (res && (!whereCond || (whereCond && condColIndex > -1)))
+            break;
 
         counter++;
     }
@@ -52,29 +60,37 @@ int updateData(char tableName[], char column[], char newValue[], char condValue[
     {
         char *tempFileName = "temp.csv";
         FILE *fpTemp = fopen(tempFileName, "w");
-        fputs(tempHeadTable, fpTemp);
+        fputs(headTable, fpTemp);
 
         char line[100];
+        fgets(line, sizeof(line), fpTable);
+        fputs(line, fpTemp);
+
         while (fgets(line, sizeof(line), fpTable) != NULL)
         {
             char columnDatas[100][100];
-            colAmount = splitString(columnDatas, line);
+            char tempLine[100];
+            strcpy(tempLine, line);
+            colAmount = splitString(columnDatas, tempLine);
+
+            if (whereCond && strcmp(condValue, columnDatas[condColIndex])) {
+                fputs(line, fpTemp);
+                continue;
+            }
+
             int chunkCounter = 0;
             while (chunkCounter < colAmount)
             {
                 if (chunkCounter > 0)
                     fprintf(fpTemp, ",");
 
-                if (chunkCounter != counter)
+                if (chunkCounter != colIndex)
                 {
                     fprintf(fpTemp, "%s", columnDatas[chunkCounter]);
                 }
                 else
                 {
-                    if (!whereCond || (whereCond && !strcmp(columnDatas[chunkCounter], condValue)))
-                        fprintf(fpTemp, "%s", newValue);
-                    else
-                        fprintf(fpTemp, "%s", columnDatas[chunkCounter]);
+                    fprintf(fpTemp, "%s", newValue);
                 }
 
                 chunkCounter++;
@@ -101,7 +117,7 @@ int deleteData(char tableName[], char condColumn[], char condValue[])
     FILE *fpTable = fopen(path, "r");
 
     char headTable[100];
-    fscanf(fpTable, "%s", headTable);
+    fgets(headTable, sizeof(headTable), fpTable);
 
     char columnNames[100][100];
     char tempHeadTable[100];
@@ -130,9 +146,12 @@ int deleteData(char tableName[], char condColumn[], char condValue[])
     FILE *fpTemp = fopen(tempFileName, "w");
     fputs(headTable, fpTemp);
 
+    char line[100];
+    fgets(line, sizeof(line), fpTable);
+    fputs(line, fpTemp);
+
     if (whereCond)
     {
-        char line[100];
         while (fgets(line, sizeof(line), fpTable) != NULL)
         {
             char columnDatas[100][100];
@@ -186,7 +205,7 @@ int dmlInterface(char *buffer)
         strcpy(tableName, splitted[1]);
         if (!strcmp(splitted[2], "SET"))
         {
-            if (updateData(tableName, splitted[3], splitted[4], splitted[7]))
+            if (updateData(tableName, splitted[3], splitted[4], splitted[6], splitted[7]))
                 res = 1;
         }
     }
