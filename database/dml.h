@@ -19,6 +19,7 @@ int updateData(char tableName[], char column[], char newValue[], char condValue[
 {
     int res = 0;
     int whereCond = 0;
+
     char path[100];
     sprintf(path, "databases/%s/%s.csv", activeDB, tableName);
     FILE *fpTable = fopen(path, "r");
@@ -90,6 +91,70 @@ int updateData(char tableName[], char column[], char newValue[], char condValue[
     return res;
 }
 
+int deleteData(char tableName[], char condColumn[], char condValue[])
+{
+    int res = 0;
+    int whereCond = 0;
+
+    char path[100];
+    sprintf(path, "databases/%s/%s.csv", activeDB, tableName);
+    FILE *fpTable = fopen(path, "r");
+
+    char headTable[100];
+    fscanf(fpTable, "%s", headTable);
+
+    char columnNames[100][100];
+    char tempHeadTable[100];
+
+    strcpy(tempHeadTable, headTable);
+    int colAmount = splitString(columnNames, tempHeadTable);
+
+    if (strcmp(condColumn, ""))
+        whereCond = 1;
+
+    int counter = 0;
+    if (whereCond)
+    {
+        while (counter < colAmount)
+        {
+            if (!strcmp(columnNames[counter], condColumn))
+            {
+                break;
+            }
+
+            counter++;
+        }
+    }
+
+    char *tempFileName = "temp.csv";
+    FILE *fpTemp = fopen(tempFileName, "w");
+    fputs(headTable, fpTemp);
+
+    if (whereCond)
+    {
+        char line[100];
+        while (fgets(line, sizeof(line), fpTable) != NULL)
+        {
+            char columnDatas[100][100];
+            char tempLine[100];
+            strcpy(tempLine, line);
+            colAmount = splitString(columnDatas, tempLine);
+
+            if (strcmp(condValue, columnDatas[counter]))
+                fputs(line, fpTemp);
+        }
+    }
+
+    fclose(fpTable);
+    fclose(fpTemp);
+
+    remove(path);
+    rename(tempFileName, path);
+    res = 1;
+
+    return res;
+}
+
 int dmlInterface(char *buffer)
 {
     char query[100];
@@ -121,7 +186,6 @@ int dmlInterface(char *buffer)
         strcpy(tableName, splitted[1]);
         if (!strcmp(splitted[2], "SET"))
         {
-            printf("%s %s %s\n", splitted[3], splitted[4], splitted[7]);
             if (updateData(tableName, splitted[3], splitted[4], splitted[7]))
                 res = 1;
         }
@@ -132,7 +196,9 @@ int dmlInterface(char *buffer)
         {
             char tableName[20];
             strcpy(tableName, splitted[2]);
-            // not impelemented
+
+            if (deleteData(tableName, splitted[4], splitted[5]))
+                res = 1;
         }
     }
     else if (!strcmp(splitted[0], "SELECT"))
