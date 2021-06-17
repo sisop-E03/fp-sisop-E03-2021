@@ -82,12 +82,11 @@ int dropColumn(char tableName[], char columnName[]) {
         FILE *fpTemp = fopen(tempFileName, "w"); 
 
         char line[100];
-
         while (fgets(line, sizeof(line), fpTable) != NULL) {
             char columnDatas[100][100];
             colAmount = splitString(columnDatas, line);
             int chunkCounter = 0;
-            while (counter < colAmount) {
+            while (chunkCounter < colAmount) {
                 if (chunkCounter != counter) {
                     if (chunkCounter > 0 && !(counter == 0 && chunkCounter == 1))
                         fprintf(fpTemp, ",");
@@ -95,6 +94,7 @@ int dropColumn(char tableName[], char columnName[]) {
                 }
                 chunkCounter++;
             }
+            fprintf(fpTemp, "\n");
         }
         fclose(fpTable);
         fclose(fpTemp);
