@@ -38,11 +38,12 @@ int updateData(char tableName[], char column[], char newValue[],
         whereCond = 1;
 
     int counter = 0;
-    int colIndex=-1;
+    int colIndex = -1;
     int condColIndex = -1;
     while (counter < colAmount)
     {
-        if (!strcmp(columnNames[counter], column)) {
+        if (!strcmp(columnNames[counter], column))
+        {
             res = 1;
             colIndex = counter;
         }
@@ -73,7 +74,8 @@ int updateData(char tableName[], char column[], char newValue[],
             strcpy(tempLine, line);
             colAmount = splitString(columnDatas, tempLine);
 
-            if (whereCond && strcmp(condValue, columnDatas[condColIndex])) {
+            if (whereCond && strcmp(condValue, columnDatas[condColIndex]))
+            {
                 fputs(line, fpTemp);
                 continue;
             }
@@ -174,6 +176,106 @@ int deleteData(char tableName[], char condColumn[], char condValue[])
     return res;
 }
 
+int selectData(char tableName[], char columns[][100], char condColumn[], char condValue[])
+{
+    int res = 0;
+    int whereCond = 0;
+
+    char path[100];
+    sprintf(path, "databases/%s/%s.csv", activeDB, tableName);
+    FILE *fpTable = fopen(path, "r");
+
+    char headTable[100];
+    fgets(headTable, sizeof(headTable), fpTable);
+
+    char columnNames[100][100];
+
+    int colAmount = splitString(columnNames, headTable);
+
+    if (strcmp(condValue, ""))
+        whereCond = 1;
+
+    int all = 0;
+
+    if (!strcmp(columns[0], "*"))
+        all = 1;
+
+    int colIndex[100];
+    memset(colIndex, -1, sizeof(colIndex));
+    int condColIndex = -1;
+    int counter = 0;
+    int i = 0;
+    while (counter < colAmount)
+    {
+        if (all)
+        {
+            colIndex[i++] = counter;
+            printf("%s\t", columnNames[counter]);
+        }
+        else
+        {
+            int j = 0;
+            while (strcmp(columns[j], ""))
+            {
+                if (!strcmp(columnNames[counter], columns[j]))
+                {
+                    colIndex[i++] = counter;
+                    printf("%s\t", columnNames[counter]);
+                }
+                j++;
+            }
+        }
+
+        if (!strcmp(columnNames[counter], condColumn))
+            condColIndex = counter;
+
+        counter++;
+    }
+    printf("\n");
+
+    char line[100];
+    fgets(line, sizeof(line), fpTable);
+    while (fgets(line, sizeof(line), fpTable) != NULL)
+    {
+        char columnDatas[100][100];
+        colAmount = splitString(columnDatas, line);
+
+        int show = 0;
+        if (!whereCond || (whereCond && !strcmp(condValue, columnDatas[condColIndex])))
+        {
+            int chunkCounter = 0;
+            while (chunkCounter < colAmount)
+            {
+                int i = 0;
+                while (colIndex[i] != -1)
+                {
+                    if (chunkCounter == colIndex[i])
+                    {
+                        int lastChar = strlen(columnDatas[chunkCounter]) - 1;
+                        if (columnDatas[chunkCounter][lastChar] == '\'')
+                            columnDatas[chunkCounter][lastChar] = '\0';
+
+                        if (columnDatas[chunkCounter][0] == '\'')
+                            printf("%s\t", columnDatas[chunkCounter] + 1);
+                        else
+                            printf("%s\t", columnDatas[chunkCounter]);
+                        break;
+                    }
+
+                    i++;
+                }
+
+                chunkCounter++;
+            }
+            printf("\n");
+        }
+    }
+
+    fclose(fpTable);
+
+    return 1;
+}
+
 int dmlInterface(char *buffer)
 {
     char query[100];
@@ -222,7 +324,24 @@ int dmlInterface(char *buffer)
     }
     else if (!strcmp(splitted[0], "SELECT"))
     {
-        // not implemented
+        int i = 1;
+        char tableName[100];
+        char columns[100][100];
+        memset(columns, '\0', sizeof(columns));
+        char condColumn[100];
+        char condValue[100];
+        while (strcmp(splitted[i], "") && strcmp(splitted[i], "FROM"))
+        {
+            strcpy(columns[i - 1], splitted[i]);
+            i++;
+        }
+
+        strcpy(tableName, splitted[i + 1]);
+        strcpy(condColumn, splitted[i + 3]);
+        strcpy(condValue, splitted[i + 4]);
+
+        if (selectData(tableName, columns, condColumn, condValue))
+            res = 1;
     }
     return res;
 }
