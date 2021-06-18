@@ -5,9 +5,10 @@ Tiap fungsi untuk berkomunikasi server dan client harus:
     Server:
     - dimulai dengan read() dan diakhiri dengan send()
 
-Implementasi function akan mengembalikan res 
-    res bernilai > 0 jika operasi sukses
-    res bernilai 0 jika operasi gagal
+Program:
+    - server mengirim 0 jika query tidak valid
+    - jika query valid maka akan mengembalikan message
+    - message bisa message success ataupun messagae gagal
 
 Kesalahan yang sering dilakukan:
 - Tidak memanggil fclose() setelah fopen()

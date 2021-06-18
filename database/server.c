@@ -20,6 +20,7 @@
 char activeUser[20] = "";
 char activeDB[20] = "";
 const char delimiter[10] = " ,=();\n";
+const char tempPath[20] = "databases/temp.csv";
 
 int splitString(char splitted[][100], char str[]) {
     int counter=0;
@@ -64,17 +65,16 @@ int dumpDB(char dbname[]) {
     sprintf(infoPath, "databases/%s/info.csv", dbname);
     FILE *fpInfo = fopen(infoPath, "r");
     while (fgets(tableName, sizeof(tableName), fpInfo) != NULL) {
-        char tablePath[100], dumpPath[100];
+        char tablePath[100];
         tableName[strcspn(tableName, "\n")] = 0;
         sprintf(tablePath, "databases/%s/%s.csv", dbname, tableName);
-        sprintf(dumpPath, "databases/dump.csv");
 
         FILE *fpTable = fopen(tablePath, "r");
-        FILE *fpDump = fopen(dumpPath, "w");
+        FILE *fpTemp = fopen(tempPath, "w");
         char tableLine[100];
 
-        fprintf(fpDump, "DROP TABLE %s;\n", tableName);
-        fprintf(fpDump, "CREATE TABLE %s (", tableName);
+        fprintf(fpTemp, "DROP TABLE %s;\n", tableName);
+        fprintf(fpTemp, "CREATE TABLE %s (", tableName);
         char colNameSplitted[100][100], colTypeSplitted[100][100];
         fgets(tableLine, sizeof(tableLine), fpTable); // get columns name of table  
 
@@ -84,27 +84,27 @@ int dumpDB(char dbname[]) {
         int counter = 0;
         while (counter < amount) {
             if (counter > 0)
-                fprintf(fpDump, ", ");
-            fprintf(fpDump, "%s %s", colNameSplitted[counter], colTypeSplitted[counter]);
+                fprintf(fpTemp, ", ");
+            fprintf(fpTemp, "%s %s", colNameSplitted[counter], colTypeSplitted[counter]);
             counter++;
         }
-        fprintf(fpDump, ");\n\n");
+        fprintf(fpTemp, ");\n\n");
 
         while(fgets(tableLine, sizeof(tableLine), fpTable) != NULL) {
             char dataSplitted[100][100];
-            fprintf(fpDump, "INSERT INTO %s (", tableName);
+            fprintf(fpTemp, "INSERT INTO %s (", tableName);
             int amount = splitString(dataSplitted, tableLine);
             counter = 0;
             while (counter < amount) {
                 if (counter > 0)
-                    fprintf(fpDump, ", ");
-                fprintf(fpDump, "%s", dataSplitted[counter]);
+                    fprintf(fpTemp, ", ");
+                fprintf(fpTemp, "%s", dataSplitted[counter]);
                 counter++;
             }
-            fprintf(fpDump, ");\n");
+            fprintf(fpTemp, ");\n");
         }
         fclose(fpTable);
-        fclose(fpDump);
+        fclose(fpTemp);
     }
     fclose(fpInfo);
     return 1;
@@ -112,7 +112,6 @@ int dumpDB(char dbname[]) {
 
 int dumpInterface(char* buffer) {
     char query[100];
-    char *word;
     strcpy(query, buffer);
     char splitted[100][100];
     int amount = splitString(splitted, query);
@@ -129,41 +128,34 @@ int dumpInterface(char* buffer) {
 
 void handleQuery(int socketfd) {
     char buffer[BUFSIZ];
-    int isDump = 0;
     while (1)
     {
         clearBuffer(buffer);
         read(socketfd, buffer, BUFSIZ);
         printf("%s\n", buffer);
-            
-        if (dumpInterface(buffer))
-            isDump = 1;
 
         int res = 0;
+            
+        if (dumpInterface(buffer))
+            res = 1;
+        else if (authInterface(buffer))
+            res = 1;
+        else if (ddlInterface(buffer))
+            res = 1;
+        else if (dmlInterface(buffer))
+            res = 1;
 
-        if (buffer[strlen(buffer)-1] == ';'){
-            // remove semicolon in buffer
-            buffer[strlen(buffer)-1] = '\0';
-            if (authInterface(buffer))
-                res = 1;
-            else if (ddlInterface(buffer))
-                res = 1;
-            else if (dmlInterface(buffer))
-                res = 1;
-        }
-
-        if (isDump){
-            FILE *fpDump = fopen("databases/dump.csv", "r");
+        if (res){
+            char data[BUFSIZ];
+            clearBuffer(data);
+            FILE *fpTemp = fopen(tempPath, "r");
             char line[BUFSIZ];
-            while (fgets(line, sizeof(line), fpDump) != NULL) {
-                printf("%s\n", line);
-                send(socketfd, line, strlen(line), 0);
+            while (fgets(line, sizeof(line), fpTemp) != NULL) {
+                strcat(data, line);
             }
-            send(socketfd, "STOP", strlen("STOP"), 0);
-            fclose(fpDump);
+            send(socketfd, data, strlen(data), 0);
+            fclose(fpTemp);
         }
-        else if (res)
-            send(socketfd, OK, strlen(OK), 0);
         else 
             send(socketfd, FAIL, strlen(FAIL), 0);
     } 

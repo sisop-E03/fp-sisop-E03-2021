@@ -91,20 +91,11 @@ int main(int argc, char *argv[]) {
     read(socketfd, buffer, BUFSIZ);
 
     if (!isSave) {
-        while (!strstr(buffer, "STOP")) {
-            printf("%s\n", buffer);
-            clearBuffer(buffer);
-            read(socketfd, buffer, BUFSIZ);
-        }
+        printf("%s\n", buffer);
     }
     else {
         FILE *fpBackup = fopen(backupPath, "a+");
-        while (!strstr(buffer, "STOP")) {
-            printf("%s\n", buffer);
-            fprintf(fpBackup, "%s\n", buffer);
-            clearBuffer(buffer);
-            read(socketfd, buffer, BUFSIZ);
-        }
+        fprintf(fpBackup, "%s\n", buffer);
         fclose(fpBackup);
     }
 

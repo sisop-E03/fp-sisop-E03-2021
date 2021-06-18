@@ -22,15 +22,16 @@ int login(int socketfd, char *data) {
     return 0;
 }
 
-
 void saveUser(char username[], char password[]) {
     FILE *fpUser;
     fpUser = fopen("databases/credentials/users.csv", "a+");
 
     fprintf(fpUser, "%s,%s\n", username, password);
     fclose(fpUser);
-
-    printf("save user success\n");
+    
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "User created");
+    fclose(fpTemp);
 }
 
 void giveAccess(char dbname[], char username[]) {
@@ -39,6 +40,24 @@ void giveAccess(char dbname[], char username[]) {
 
     fprintf(fpAccess, "%s,%s\n", dbname, username);
     fclose(fpAccess);
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "Database access given\n");
+    fclose(fpTemp);
+}
+
+int changeActiveDB(char dbname[]) {
+    if (doHaveAccess(dbname)){
+        strcpy(activeDB, dbname);
+        FILE *fpTemp = fopen(tempPath, "w");
+        fprintf(fpTemp, "Active database changed\n");
+        fclose(fpTemp);
+    }
+    else {
+        FILE *fpTemp = fopen(tempPath, "w");
+        fprintf(fpTemp, "You don't have access to this database\n");
+        fclose(fpTemp);
+    }
+    return 1;
 }
 
 int authInterface(char* buffer) {
@@ -63,14 +82,8 @@ int authInterface(char* buffer) {
         }
     } 
     else if (!strcmp(splitted[0], "USE")) {
-        if (doHaveAccess(splitted[1])){
-            strcpy(activeDB, splitted[1]);
-            printf("Change active DB to %s\n", activeDB);
+        if (changeActiveDB(splitted[1]));
             res = 1;
-        }
-        else {
-            printf("You dont have access\n");
-        }
     }
     else if (!strcmp(splitted[0], "GRANT") && !strcmp(activeUser, "root")) {
         if (!strcmp(splitted[1], "PERMISSION")) {

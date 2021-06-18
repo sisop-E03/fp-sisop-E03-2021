@@ -36,15 +36,43 @@ void clearBuffer(char* b) {
 
 void interface(int socketfd, int root) {
     char buffer[BUFSIZ], query[BUFSIZ];
-    while(1) {
-        fgets(query, sizeof(query), stdin);
+    printf("yoisql> ");
+    while(fgets(query, sizeof(query), stdin) != NULL) {
         query[strcspn(query, "\n")] = 0;
-        send(socketfd, query, strlen(query), 0);
-        read(socketfd, buffer, BUFSIZ);
-        if (!strcmp(buffer, OK))
-            printf("query berhasil\n");
-        else 
-            printf("query gagal tidak valid\n");
+        if (strlen(query) == 0) {
+            continue;
+        }
+        if (!strcmp(query, "help")){
+            printf("query list:\n\n");
+
+            printf("Admin Only:\n");
+            printf("  CREATE USER [username] IDENTIFIED BY [user_password];\n\n");
+            printf("  GRANT PERMISSION [database_name] INTO [username];\n\n");
+
+            printf("All authenticate User:\n");
+            printf("  USE [database_name];\n\n");
+            printf("  CREATE DATABASE [database_name];\n\n");
+            printf("  CREATE TABLE [table_name] \n\t([column_name] [data_type], ...);\n\n");
+            printf("  DROP [DATABASE | TABLE | COLUMN] \n\t[database_name | table_name | column_name] \n\tFROM [table_name];\n\n");
+            printf("  INSERT INTO [table_name] \n\t([value], ...);\n\n");
+            printf("  UPDATE [table_name] \n\tSET [column_name]=[value];\n\n");
+            printf("  DELETE FROM [table_name];\n\n");
+            printf("  SELECT [column_name, ... | *] \n\tFROM [table_name];\n\n");
+            printf("  [Command UPDATE, SELECT, DELETE] \n\tWHERE [column_name]=[value];\n\n");
+        }
+        else if (!strcmp(query, "clear")) {
+            system("clear");
+        }
+        else {
+            send(socketfd, query, strlen(query), 0);
+            clearBuffer(buffer);
+            read(socketfd, buffer, BUFSIZ);
+            if (strcmp(buffer, FAIL))
+                printf("%s\n", buffer );
+            else 
+                printf("query not valid\n");   
+        }
+        printf("yoisql> ");
     }
 }
 
@@ -90,7 +118,8 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
     
-    printf("Login berhasil\nYou can create query\n");
+    printf("Welcome to the YoiSQL. Commands end with ;\n\n");
+    printf("Type 'help' for help. Type 'clear' to clear command line\n\n");
 
     interface(socketfd, root);
 

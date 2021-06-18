@@ -11,6 +11,9 @@ int createDB(char dbname[]) {
         fclose(fpAccess);
         res = 1;
     }
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "Database created\n");
+    fclose(fpTemp);
     return res;
 }
 
@@ -34,6 +37,9 @@ int createTable(char tableName[], char colName[][20], char colType[][20], int co
     fprintf(fpInfo, "%s\n", tableName);
     fclose(fpInfo);
     fclose(fpTable);
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "Table created\n");
+    fclose(fpTemp);
     return 1;
 }
 
@@ -41,8 +47,10 @@ int dropDB(char dbname[]) {
     int res = 0;
     char cmd[100];
     sprintf(cmd, "rm -r databases/%s", dbname);
-
     system(cmd);
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "Database dropped\n");
+    fclose(fpTemp);
     return 1;
 }
 
@@ -50,8 +58,10 @@ int dropTable(char tableName[]) {
     int res = 0;
     char cmd[100];
     sprintf(cmd, "rm -r databases/%s/%s.csv", activeDB, tableName);
-
     system(cmd);
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "Table created\n");
+    fclose(fpTemp);
     return 1;
 }
 
@@ -101,6 +111,9 @@ int dropColumn(char tableName[], char columnName[]) {
         remove(path);
         rename(tempFileName, path);
     }
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "Column Dropped");
+    fclose(fpTemp);
     return res;
 }
 

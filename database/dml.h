@@ -12,6 +12,9 @@ int insertData(char tableName[], char data[][20], int colAmount)
     }
     fprintf(fpTable, "\n");
     fclose(fpTable);
+    FILE *fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "1 row data inserted\n");
+    fclose(fpTemp);
     return 1;
 }
 
@@ -24,6 +27,7 @@ int updateData(char tableName[], char column[], char newValue[],
     char path[100];
     sprintf(path, "databases/%s/%s.csv", activeDB, tableName);
     FILE *fpTable = fopen(path, "r");
+    FILE *fpTemp;
 
     char headTable[100];
     fgets(headTable, sizeof(headTable), fpTable);
@@ -56,11 +60,11 @@ int updateData(char tableName[], char column[], char newValue[],
 
         counter++;
     }
-
+    int rowUpdatedCounter = 0;
     if (res)
     {
         char *tempFileName = "temp.csv";
-        FILE *fpTemp = fopen(tempFileName, "w");
+        fpTemp = fopen(tempFileName, "w");
         fputs(headTable, fpTemp);
 
         char line[100];
@@ -97,6 +101,7 @@ int updateData(char tableName[], char column[], char newValue[],
 
                 chunkCounter++;
             }
+            rowUpdatedCounter++;
             fprintf(fpTemp, "\n");
         }
 
@@ -106,6 +111,9 @@ int updateData(char tableName[], char column[], char newValue[],
         remove(path);
         rename(tempFileName, path);
     }
+    fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "%d row data updated\n", rowUpdatedCounter);
+    fclose(fpTemp);
     return res;
 }
 
@@ -152,6 +160,7 @@ int deleteData(char tableName[], char condColumn[], char condValue[])
     fgets(line, sizeof(line), fpTable);
     fputs(line, fpTemp);
 
+    int rowDeletedCounter = 0;
     if (whereCond)
     {
         while (fgets(line, sizeof(line), fpTable) != NULL)
@@ -163,6 +172,8 @@ int deleteData(char tableName[], char condColumn[], char condValue[])
 
             if (strcmp(condValue, columnDatas[counter]))
                 fputs(line, fpTemp);
+            else
+                rowDeletedCounter++;
         }
     }
 
@@ -172,6 +183,10 @@ int deleteData(char tableName[], char condColumn[], char condValue[])
     remove(path);
     rename(tempFileName, path);
     res = 1;
+
+    fpTemp = fopen(tempPath, "w");
+    fprintf(fpTemp, "%d row deleted\n", rowDeletedCounter);
+    fclose(fpTemp);
 
     return res;
 }
@@ -184,6 +199,7 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
     char path[100];
     sprintf(path, "databases/%s/%s.csv", activeDB, tableName);
     FILE *fpTable = fopen(path, "r");
+    FILE *fpTemp = fopen(tempPath, "w");
 
     char headTable[100];
     fgets(headTable, sizeof(headTable), fpTable);
@@ -210,7 +226,7 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
         if (all)
         {
             colIndex[i++] = counter;
-            printf("%s\t", columnNames[counter]);
+            fprintf(fpTemp, "%s\t", columnNames[counter]);
         }
         else
         {
@@ -220,7 +236,7 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
                 if (!strcmp(columnNames[counter], columns[j]))
                 {
                     colIndex[i++] = counter;
-                    printf("%s\t", columnNames[counter]);
+                    fprintf(fpTemp, "%s\t", columnNames[counter]);
                 }
                 j++;
             }
@@ -231,7 +247,7 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
 
         counter++;
     }
-    printf("\n");
+    fprintf(fpTemp, "\n");
 
     char line[100];
     fgets(line, sizeof(line), fpTable);
@@ -256,9 +272,9 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
                             columnDatas[chunkCounter][lastChar] = '\0';
 
                         if (columnDatas[chunkCounter][0] == '\'')
-                            printf("%s\t", columnDatas[chunkCounter] + 1);
+                            fprintf(fpTemp, "%s\t", columnDatas[chunkCounter] + 1);
                         else
-                            printf("%s\t", columnDatas[chunkCounter]);
+                            fprintf(fpTemp, "%s\t", columnDatas[chunkCounter]);
                         break;
                     }
 
@@ -267,10 +283,10 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
 
                 chunkCounter++;
             }
-            printf("\n");
+            fprintf(fpTemp, "\n");
         }
     }
-
+    fclose(fpTemp);
     fclose(fpTable);
 
     return 1;
