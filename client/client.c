@@ -36,7 +36,7 @@ void clearBuffer(char* b) {
 
 void interface(int socketfd, int root) {
     char buffer[BUFSIZ], query[BUFSIZ];
-    printf("yoisql> ");
+    printf("yousql> ");
     while(fgets(query, sizeof(query), stdin) != NULL) {
         query[strcspn(query, "\n")] = 0;
         if (strlen(query) == 0) {
@@ -70,9 +70,9 @@ void interface(int socketfd, int root) {
             if (strcmp(buffer, FAIL))
                 printf("%s\n", buffer );
             else 
-                printf("query not valid\n");   
+                printf("query not valid\n\n");   
         }
-        printf("yoisql> ");
+        printf("yousql> ");
     }
 }
 
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
     
-    printf("Welcome to the YoiSQL. Commands end with ;\n\n");
+    printf("Welcome to the YouSQL. Commands end with ;\n\n");
     printf("Type 'help' for help. Type 'clear' to clear command line\n\n");
 
     interface(socketfd, root);
