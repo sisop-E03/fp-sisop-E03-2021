@@ -211,42 +211,50 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
     if (strcmp(condValue, ""))
         whereCond = 1;
 
-    int all = 0;
-
-    if (!strcmp(columns[0], "*"))
-        all = 1;
-
     int colIndex[100];
     memset(colIndex, -1, sizeof(colIndex));
     int condColIndex = -1;
     int counter = 0;
-    int i = 0;
-    while (counter < colAmount)
+
+    if (!strcmp(columns[0], "*"))
     {
-        if (all)
+        int i = 0;
+        while (i < colAmount)
         {
-            colIndex[i++] = counter;
-            fprintf(fpTemp, "%s\t", columnNames[counter]);
+            colIndex[counter++] = i;
+            fprintf(fpTemp, "%s\t", columnNames[i]);
+
+            if (!strcmp(columnNames[i], condColumn))
+                condColIndex = i;
+
+            i++;
         }
-        else
+    }
+    else
+    {
+        int i = 0;
+        while (strcmp(columns[i], ""))
         {
             int j = 0;
-            while (strcmp(columns[j], ""))
+            while (j < colAmount)
             {
-                if (!strcmp(columnNames[counter], columns[j]))
+
+                if (!strcmp(columnNames[j], columns[i]))
                 {
-                    colIndex[i++] = counter;
-                    fprintf(fpTemp, "%s\t", columnNames[counter]);
+                    colIndex[counter++] = j;
+                    fprintf(fpTemp, "%s\t", columnNames[j]);
                 }
+
+                if (whereCond && condColIndex < 0 && !strcmp(columnNames[j], condColumn))
+                    condColIndex = j;
+
                 j++;
             }
+
+            i++;
         }
-
-        if (!strcmp(columnNames[counter], condColumn))
-            condColIndex = counter;
-
-        counter++;
     }
+
     fprintf(fpTemp, "\n");
 
     char line[100];
@@ -259,11 +267,11 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
         int show = 0;
         if (!whereCond || (whereCond && !strcmp(condValue, columnDatas[condColIndex])))
         {
-            int chunkCounter = 0;
-            while (chunkCounter < colAmount)
+            int i = 0;
+            while (colIndex[i] != -1)
             {
-                int i = 0;
-                while (colIndex[i] != -1)
+                int chunkCounter = 0;
+                while (chunkCounter < colAmount)
                 {
                     if (chunkCounter == colIndex[i])
                     {
@@ -278,10 +286,10 @@ int selectData(char tableName[], char columns[][100], char condColumn[], char co
                         break;
                     }
 
-                    i++;
+                    chunkCounter++;
                 }
-
-                chunkCounter++;
+                
+                i++;
             }
             fprintf(fpTemp, "\n");
         }
